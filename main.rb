@@ -2,12 +2,10 @@ require 'sinatra'
 require "sinatra/json"
 require "google/cloud/language"
 
+set :bind, '0.0.0.0'
+
 project_id = "fifth-audio-170817"
 language = Google::Cloud::Language.new project: project_id
-
-text = "Hello, world!"
-document = language.document text
-syntax = document.syntax
 
 class RequestHandler
     def can_handle?(document)
