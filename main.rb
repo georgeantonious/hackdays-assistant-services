@@ -31,7 +31,7 @@ class SearchRequestHandler < RequestHandler
     def handle(document)
         tokens = document.syntax.tokens
         subject_index = tokens.index(tokens.find { |t| t.text == @subject_name})
-        descriptive_labels = ["ACOMP", "AMOD", "ADVMOD", "ADVCL"]
+        descriptive_labels = ["ACOMP", "AMOD", "ADVMOD", "ADVCL", "POBJ"]
 
         search_terms = tokens.select { |t| descriptive_labels.include?(t.label.to_s) }
                              .select { |t| eventually_points_to?(tokens, tokens.index(t), subject_index)}
