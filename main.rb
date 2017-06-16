@@ -2,11 +2,6 @@ require 'sinatra'
 require "sinatra/json"
 require "google/cloud/language"
 
-set :bind, '0.0.0.0'
-
-project_id = "fifth-audio-170817"
-language = Google::Cloud::Language.new project: project_id
-
 class RequestHandler
     def can_handle?(document)
         true
@@ -55,18 +50,38 @@ class SearchRequestHandler < RequestHandler
 end
 
 class OrderSearchRequestHandler < SearchRequestHandler
-    def initialize()
+    def initialize
         super("ORDER_SEARCH", "orders")
     end 
 end
 
 class ProductSearchRequestHandler < SearchRequestHandler
-    def initialize()
+    def initialize
         super("PRODUCT_SEARCH", "products")
     end 
 end
 
-handlers = [OrderSearchRequestHandler.new, ProductSearchRequestHandler.new, RequestHandler.new]
+class CustomerDetailsRequestHandler < RequestHandler
+    def can_handle?(document)
+        document.sentiment.score.between?(0.09, 0.22) && 
+        document.entities.any? { |e| e.type.to_s == "PERSON" }
+    end
+
+    def handle(document)
+        person = document.entities.select { |e| e.type.to_s == "PERSON" }.first
+        { "type" => "CUSTOMER_DETAILS", "details" => { "customerName" => person.name } }
+    end
+end
+
+set :bind, '0.0.0.0'
+
+project_id = "fifth-audio-170817"
+language = Google::Cloud::Language.new project: project_id
+
+handlers = [CustomerDetailsRequestHandler.new,
+            OrderSearchRequestHandler.new, 
+            ProductSearchRequestHandler.new, 
+            RequestHandler.new]
 
 get '/' do 
     request = params[:request]
